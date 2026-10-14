@@ -1,0 +1,21 @@
+{
+  "name": "gtm-qa-checker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension (MV3): GTM QA linter, version diff and Markdown report generator",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@types/chrome": "^0.0.270",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.8"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  }
+}

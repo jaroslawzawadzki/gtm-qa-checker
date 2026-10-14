@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.log
+
+# Files the extension downloads – they can contain client container data, never commit them.
+gtm-qa-captures-*.json
+gtm-qa-*.json
+raport-gtm-*.md
+gtm-report-*.md
+gtm-bericht-*.md
