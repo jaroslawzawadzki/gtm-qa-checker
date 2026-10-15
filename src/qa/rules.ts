@@ -26,6 +26,15 @@ export interface Finding {
   message: string;
   entities: EntityRef[];
   details: string[];
+  /** Concrete fixes per element (e.g. the name it should have), shown as a "How to fix" list. */
+  fixes?: Fix[];
+}
+
+export interface Fix {
+  entity: EntityRef;
+  /** What the value should be (e.g. the correct name). */
+  suggestion: string;
+  reason: string;
 }
 
 export interface LintContext {

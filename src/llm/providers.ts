@@ -96,8 +96,21 @@ async function anthropic(settings: Settings, system: string, user: string): Prom
   }
 }
 
+/**
+ * REST calls for OpenAI / Gemini: retry twice on overload (429 / 503) – these are usually short spikes.
+ * The Anthropic SDK already retries on its own.
+ */
+async function fetchWithRetry(url: string, init: RequestInit, attempts = 3): Promise<Response> {
+  for (let i = 1; ; i++) {
+    const res = await fetch(url, init);
+    if ((res.status !== 429 && res.status !== 503) || i >= attempts) return res;
+    const retryAfter = Number(res.headers.get('retry-after'));
+    await new Promise((r) => setTimeout(r, Math.min(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 2000 * i, 10_000)));
+  }
+}
+
 async function openai(settings: Settings, system: string, user: string): Promise<LlmResult> {
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetchWithRetry('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${settings.apiKey}` },
     body: JSON.stringify({
@@ -117,7 +130,7 @@ async function openai(settings: Settings, system: string, user: string): Promise
 
 async function gemini(settings: Settings, system: string, user: string): Promise<LlmResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(settings.llmModel)}:generateContent`;
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-goog-api-key': settings.apiKey },
     body: JSON.stringify({

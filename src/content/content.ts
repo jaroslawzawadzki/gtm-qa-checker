@@ -135,7 +135,17 @@ const controller: Controller = {
 };
 
 // GTM is a single-page app: keep the context in sync with the hash route.
-const syncContext = () => store.setContext(parseContext(location.href));
+const syncContext = () => {
+  const before = store.context.containerId;
+  store.setContext(parseContext(location.href));
+  // Results belong to the previous container – drop them so nothing is shown or re-used in the new one.
+  if (before && store.context.containerId !== before) {
+    controller.lastDiff = null;
+    controller.lastLint = null;
+    lastDiffRequest = null;
+    lastLintRequest = null;
+  }
+};
 syncContext();
 window.addEventListener('hashchange', syncContext);
 window.addEventListener('popstate', syncContext);

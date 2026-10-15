@@ -1,0 +1,131 @@
+GTM QA Checker – installation / Installation / Instalacja
+==========================================================
+
+The extension is not in the Chrome Web Store – it is installed from a ZIP file ("Load unpacked").
+Works in Google Chrome (and other Chromium browsers: Edge, Brave) on Windows and macOS.
+
+
+EN – Get the ZIP
+----------------
+- GitHub: https://github.com/jaroslawzawadzki/gtm-qa-checker/releases
+  → newest release → Assets → gtm-qa-checker-<version>.zip  (the repository is private – you need access)
+- or ask a colleague / take it from the shared agency drive.
+
+EN – Install (once)
+-------------------
+1. Unzip the ZIP into a permanent folder, e.g.  C:\Tools\gtm-qa-checker
+   (right-click the ZIP → "Extract All…").
+   Keep the folder there – if it is moved or deleted, Chrome removes the extension
+   and your settings (API key, exceptions, language) are lost.
+   The folder must directly contain manifest.json (not another sub-folder).
+2. Open Chrome and go to:  chrome://extensions
+3. Turn on "Developer mode" (switch top right).
+4. Click "Load unpacked" (top left) and select the folder from step 1.
+5. Pin it: puzzle icon in the toolbar → pin "GTM QA Checker".
+6. Open (or reload) tagmanager.google.com – the purple "QA" button appears bottom right.
+
+EN – Update to a new version
+----------------------------
+1. Unzip the new ZIP into the SAME folder (replace all files).
+2. chrome://extensions → click the reload arrow (↻) on "GTM QA Checker".
+3. Reload the GTM tab. Settings and exceptions are kept.
+
+EN – First steps
+----------------
+- QA button → Settings: choose the language (EN / DE / PL) and, for AI summaries, the provider + API key.
+  The API key is stored locally in the browser (chrome.storage.local) only.
+- Open a container → QA → "Run QA". Afterwards GTM's lists show red / yellow / blue markers.
+- When you are done: Report → "Create report from my changes" (copied to the clipboard).
+- Container → Settings: smarketer best practices for the Google tag settings.
+
+EN – Troubleshooting
+--------------------
+- No "QA" button: reload the GTM tab; check that the extension is enabled in chrome://extensions.
+- "Manifest file is missing": you selected the wrong folder – pick the one that contains manifest.json.
+- Chrome may show a "developer mode extensions" notice at start-up – close it / click "Keep".
+- Settings and exceptions are stored per Chrome profile (not per Google account).
+  To share agency exceptions: Settings → Agency exceptions → Export, then Import on the other computer.
+
+
+DE – ZIP herunterladen
+----------------------
+- GitHub: https://github.com/jaroslawzawadzki/gtm-qa-checker/releases
+  → neuestes Release → Assets → gtm-qa-checker-<Version>.zip  (privates Repository – Zugriff nötig)
+- oder von Kolleg:innen / aus dem gemeinsamen Agentur-Laufwerk.
+
+DE – Installation (einmalig)
+----------------------------
+1. ZIP in einen dauerhaften Ordner entpacken, z. B.  C:\Tools\gtm-qa-checker
+   (Rechtsklick auf die ZIP → „Alle extrahieren…“).
+   Den Ordner dort lassen – wird er verschoben oder gelöscht, entfernt Chrome die Erweiterung
+   und die Einstellungen (API-Schlüssel, Ausnahmen, Sprache) gehen verloren.
+   Im Ordner muss direkt die Datei manifest.json liegen (kein weiterer Unterordner).
+2. Chrome öffnen:  chrome://extensions
+3. „Entwicklermodus“ einschalten (Schalter oben rechts).
+4. „Entpackte Erweiterung laden“ (oben links) klicken und den Ordner aus Schritt 1 wählen.
+5. Anheften: Puzzle-Symbol in der Symbolleiste → „GTM QA Checker“ anheften.
+6. tagmanager.google.com öffnen (oder neu laden) – unten rechts erscheint der lila „QA“-Button.
+
+DE – Auf eine neue Version aktualisieren
+----------------------------------------
+1. Neue ZIP in DENSELBEN Ordner entpacken (alle Dateien ersetzen).
+2. chrome://extensions → bei „GTM QA Checker“ auf den Neu-laden-Pfeil (↻) klicken.
+3. GTM-Tab neu laden. Einstellungen und Ausnahmen bleiben erhalten.
+
+DE – Erste Schritte
+-------------------
+- QA-Button → Einstellungen: Sprache (EN / DE / PL) und für KI-Zusammenfassungen Anbieter + API-Schlüssel.
+  Der API-Schlüssel wird nur lokal im Browser gespeichert (chrome.storage.local).
+- Container öffnen → QA → „QA starten“. Danach zeigen die GTM-Listen rote / gelbe / blaue Markierungen.
+- Wenn die Arbeit fertig ist: Bericht → „Bericht zu meinen Änderungen erstellen“ (in die Zwischenablage kopiert).
+- Container → Einstellungen: smarketer Best Practices für die Google-Tag-Einstellungen.
+
+DE – Probleme
+-------------
+- Kein „QA“-Button: GTM-Tab neu laden; prüfen, ob die Erweiterung in chrome://extensions aktiviert ist.
+- „Manifestdatei fehlt“: falscher Ordner gewählt – den Ordner mit manifest.json auswählen.
+- Chrome zeigt beim Start evtl. einen Hinweis zu Erweiterungen im Entwicklermodus – einfach schließen.
+- Einstellungen und Ausnahmen werden pro Chrome-Profil gespeichert (nicht pro Google-Konto).
+  Ausnahmen teilen: Einstellungen → Agentur-Ausnahmen → Exportieren, am anderen Rechner Importieren.
+
+
+PL – Skąd wziąć ZIP
+-------------------
+- GitHub: https://github.com/jaroslawzawadzki/gtm-qa-checker/releases
+  → najnowsze wydanie → Assets → gtm-qa-checker-<wersja>.zip  (repozytorium prywatne – potrzebny dostęp)
+- albo od kolegi / ze wspólnego dysku agencji.
+
+PL – Instalacja (jednorazowo)
+-----------------------------
+1. Rozpakuj ZIP do stałego folderu, np.  C:\Tools\gtm-qa-checker
+   (prawy przycisk na ZIP → „Wyodrębnij wszystkie…”).
+   Nie przenoś ani nie usuwaj folderu – wtedy Chrome usuwa wtyczkę
+   i znikają ustawienia (klucz API, wyjątki, język).
+   W folderze musi bezpośrednio leżeć plik manifest.json (bez dodatkowego podfolderu).
+2. Otwórz Chrome i wejdź na:  chrome://extensions
+3. Włącz „Tryb dewelopera” (przełącznik w prawym górnym rogu).
+4. Kliknij „Załaduj rozpakowane” (lewy górny róg) i wskaż folder z kroku 1.
+5. Przypnij: ikona puzzla na pasku → przypnij „GTM QA Checker”.
+6. Otwórz (lub przeładuj) tagmanager.google.com – w prawym dolnym rogu pojawi się fioletowy przycisk „QA”.
+
+PL – Aktualizacja do nowej wersji
+---------------------------------
+1. Rozpakuj nowy ZIP do TEGO SAMEGO folderu (zastąp wszystkie pliki).
+2. chrome://extensions → kliknij strzałkę odświeżania (↻) przy „GTM QA Checker”.
+3. Przeładuj kartę GTM. Ustawienia i wyjątki zostają.
+
+PL – Pierwsze kroki
+-------------------
+- Przycisk QA → Ustawienia: wybierz język (EN / DE / PL), a dla podsumowań AI dostawcę i klucz API.
+  Klucz API jest przechowywany tylko lokalnie w przeglądarce (chrome.storage.local).
+- Otwórz kontener → QA → „Uruchom QA”. Potem listy w GTM pokazują czerwone / żółte / niebieskie kółka.
+- Po skończonej pracy: Raport → „Utwórz raport z moich zmian” (kopiuje się do schowka).
+- Kontener → Settings: best practices smarketer dla ustawień Google tag.
+
+PL – Problemy
+-------------
+- Brak przycisku „QA”: przeładuj kartę GTM; sprawdź, czy wtyczka jest włączona w chrome://extensions.
+- „Brak pliku manifestu”: wybrany zły folder – wskaż ten, w którym jest manifest.json.
+- Przy starcie Chrome może pokazać komunikat o rozszerzeniach w trybie dewelopera – wystarczy go zamknąć.
+- Ustawienia i wyjątki są zapisane w profilu Chrome (nie na koncie Google).
+  Wspólne wyjątki agencji: Ustawienia → Wyjątki agencji → Eksportuj, na drugim komputerze Importuj.

@@ -38,6 +38,14 @@ export class DiffTab {
   }
 
   /** After a language change: rebuilds the form and the result from ctl.lastDiff. */
+  /** Container switched: forget version picks that belong to the previous container. */
+  resetForContainer(): void {
+    this.wsVersion = '';
+    this.rangeFrom = '';
+    this.rangeTo = '';
+    this.refresh();
+  }
+
   refresh(): void {
     this.setStatus('');
     this.renderForm();

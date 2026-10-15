@@ -8,3 +8,8 @@ gtm-qa-*.json
 raport-gtm-*.md
 gtm-report-*.md
 gtm-bericht-*.md
+release/
+
+# Local working files
+dist.zip
+*.docx

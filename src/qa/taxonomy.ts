@@ -44,6 +44,9 @@ export const namingTaxonomy: Rule = (ctx) => {
           message: `${t('taxMessage', { format })}${sstProject ? '' : t('taxNotSst')}`,
           entities: list.map((v) => ({ kind: v.entity.kind, id: v.entity.id, name: v.entity.name })),
           details: list.map((v) => `${v.entity.name}  →  ${v.suggestion ?? '?'}  (${v.reason})`),
+          fixes: list
+            .filter((v) => v.suggestion && v.suggestion !== v.entity.name)
+            .map((v) => ({ entity: { kind: v.entity.kind, id: v.entity.id, name: v.entity.name }, suggestion: v.suggestion!, reason: v.reason })),
         }
       : null;
 

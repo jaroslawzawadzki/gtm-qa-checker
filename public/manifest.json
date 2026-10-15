@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GTM QA Checker",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "QA linter, version diff and Markdown report generator for Google Tag Manager.",
   "permissions": [
     "storage"
@@ -16,7 +16,11 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "GTM QA Checker"
+    "default_title": "GTM QA Checker",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
   },
   "content_scripts": [
     {
@@ -48,5 +52,11 @@
         "https://tagmanager.google.com/*"
       ]
     }
-  ]
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
 }

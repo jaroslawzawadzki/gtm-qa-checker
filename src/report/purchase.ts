@@ -74,7 +74,8 @@ interface Cell {
   auto?: boolean;
 }
 
-export function purchaseSection(snap: Snapshot | null, diff: DiffResult | null, templates: Map<string, string>): string[] {
+/** compact: verdicts only (no per-tag table) and shortened tag lists – for the default, short report. */
+export function purchaseSection(snap: Snapshot | null, diff: DiffResult | null, templates: Map<string, string>, compact = false): string[] {
   if (!snap) return [];
   const resolver = new Resolver(snap);
   const tags = Object.values(snap.tags)
@@ -86,20 +87,21 @@ export function purchaseSection(snap: Snapshot | null, diff: DiffResult | null, 
   const status = new Map((diff?.entities ?? []).filter((e) => e.kind === 'tag').map((e) => [e.id, e.status]));
   const cells = new Map(tags.map((tag) => [tag.id, cellsOf(tag, resolver)]));
 
-  out.push(
+  if (!compact) out.push(
     t('intro', { scope: snap.label }),
     '',
     `| ${t('tag')} | ${t('type')} | ${t('event')} | ${FIELDS.join(' | ')} |`,
     `|${'---|'.repeat(FIELDS.length + 3)}`,
   );
-  for (const tag of tags) {
+  for (const tag of compact ? [] : tags) {
     const marker = tag.paused ? '⏸ ' : status.get(tag.id) === 'added' ? '🆕 ' : status.get(tag.id) === 'modified' ? '✏️ ' : '';
     const row = cells.get(tag.id)!;
     const values = tag.type === 'html' && !row.size ? [`_${t('inCode')}_`, '', '', '', ''] : FIELDS.map((f) => (row.get(f) ? md(cellText(row.get(f)!)) : '—'));
     out.push(`| ${marker}${md(tag.name)} | ${md(templates.get(tag.type) ?? tag.type)} | ${md(eventOf(tag, snap))} | ${values.join(' | ')} |`);
   }
-  out.push('', `**${t('verdict')}**`, '');
+  if (!compact) out.push('', `**${t('verdict')}**`, '');
 
+  const names = (list: string[]) => (compact && list.length > 3 ? `${list.slice(0, 3).join(', ')} +${list.length - 3}` : list.join(', '));
   // Verdict over active tags only – paused ones don't send anything.
   const active = tags.filter((tag) => !tag.paused);
   for (const field of FIELDS) {
@@ -117,14 +119,14 @@ export function purchaseSection(snap: Snapshot | null, diff: DiffResult | null, 
       out.push(`- ${t('same', { field, count: g.tags.length, source: `\`${short(g.source)}\`` })}`);
     } else if (groups.size > 1) {
       out.push(`- ${t('different', { field, count: groups.size })}`);
-      for (const g of groups.values()) out.push(`  - ${t('usedBy', { source: `\`${short(g.source)}\``, tags: g.tags.join(', ') })}`);
+      for (const g of groups.values()) out.push(`  - ${t('usedBy', { source: `\`${short(g.source)}\``, tags: names(g.tags) })}`);
     }
     // Only tags that send part of the purchase data: remarketing / user-data / config tags send none by design.
     const sendsValues = (tag: GtmTag) => REQUIRED.some((f) => cells.get(tag.id)!.has(f));
     const missing = REQUIRED.includes(field)
       ? active.filter((tag) => sendsValues(tag) && !cells.get(tag.id)!.get(field) && !(field === 'transaction_id' && tag.type === 'baut'))
       : [];
-    if (missing.length && groups.size) out.push(`  - ${t('missing', { field, tags: missing.map((x) => x.name).join(', ') })}`);
+    if (missing.length && groups.size) out.push(`  - ${t('missing', { field, tags: names(missing.map((x) => x.name)) })}`);
   }
   out.push('');
   return out;

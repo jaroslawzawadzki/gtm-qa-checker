@@ -46,13 +46,13 @@ You only see the GTM configuration, not the website code.
 
 Write the answer in ${o.language}, in Markdown, using exactly this structure:
 ### ${o.summary}
-3–6 bullet points: what changed and how it affects measurement, reports and campaigns. Business language, avoid GTM jargon where possible.
+2–4 bullet points, one line each: what changed and how it affects measurement, reports and campaigns. Business language, avoid GTM jargon where possible.
 ### ${o.risks}
-The most important QA problems ordered by severity (max. 5), each with a concrete recommendation. If there are none, write "${o.noRisks}".
+The most important QA problems ordered by severity (max. 3), one line each including a concrete recommendation. If there are none, write "${o.noRisks}".
 ### ${o.observations}
-Subtle logical errors visible in the data that QA did not report directly (e.g. inconsistent event names across platforms, an event handled by other platforms but missing a tag). Only if they follow from the data – do not guess. If nothing, write "${o.none}".
+Subtle logical errors visible in the data that QA did not report directly (e.g. inconsistent event names across platforms, an event handled by other platforms but missing a tag). Max. 2 bullet points, only if they follow from the data – do not guess. If nothing, write "${o.none}".
 
-Do not repeat the whole QA list, do not invent facts that are not in the JSON, no introduction or closing remarks.
+Keep the whole answer under 150 words – it goes into a ticket. Do not repeat the whole QA list, do not invent facts that are not in the JSON, no introduction or closing remarks.
 Use tag, trigger and variable names exactly as they appear in the JSON and only with the finding they belong to – if a name is not in the data, describe the problem without a name.`;
 }
 

@@ -8,6 +8,7 @@ import type { Finding, Severity } from '../qa/rules';
 import { fieldUses, type SemanticField } from '../qa/semantics';
 import type { Settings } from '../shared/storage';
 import type { EntityKind, GtmContext, GtmTag, Snapshot } from '../shared/types';
+import { buildCompactReport } from './compact';
 import { purchaseSection } from './purchase';
 
 export interface ReportInput {
@@ -23,12 +24,14 @@ export interface ReportInput {
 }
 
 export interface ReportOptions {
+  /** Full report with tables and finding details; false = short report for tickets (default). */
+  detailed: boolean;
   includeInfo: boolean;
   includeChangeList: boolean;
   maxDetailLines: number;
 }
 
-export const DEFAULT_REPORT_OPTIONS: ReportOptions = { includeInfo: false, includeChangeList: true, maxDetailLines: 8 };
+export const DEFAULT_REPORT_OPTIONS: ReportOptions = { detailed: false, includeInfo: false, includeChangeList: true, maxDetailLines: 8 };
 
 // Named `tr` because `t` is a common loop variable in this file.
 const tr = defineMessages({
@@ -189,6 +192,7 @@ const SEVERITY_HEADER = (severity: Severity): string =>
 const VALUE_FIELDS: SemanticField[] = ['value', 'currency', 'transaction_id'];
 
 export function buildReport(input: ReportInput): string {
+  if (!input.options.detailed) return buildCompactReport(input);
   const { context, diff, lint, options } = input;
   const out: string[] = [];
   const container = [context.publicId, context.containerId && tr('containerId', { id: context.containerId })].filter(Boolean).join(' · ');

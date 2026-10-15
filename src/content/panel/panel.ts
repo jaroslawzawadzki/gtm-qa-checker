@@ -2,10 +2,12 @@
 // All user/container-provided strings are rendered as text nodes (never innerHTML).
 import { getLang, isLang, LANGS, type Lang } from '../../i18n';
 import { DEFAULT_MODELS, loadSettings, saveSettings, type LlmProvider } from '../../shared/storage';
-import type { DetectedCounts, EntityChange, GtmEntity, GtmParameter, ScopeKey, Snapshot } from '../../shared/types';
+import type { DetectedCounts, EntityChange, EntityKind, GtmEntity, GtmParameter, ScopeKey, Snapshot } from '../../shared/types';
 import { hasEntities } from '../captureLog';
 import type { Controller } from '../content';
 import type { Progress } from '../loader';
+import { GtmOverlay } from '../overlay';
+import { SettingsGuide } from '../settingsGuide';
 import { DiffTab } from './diffTab';
 import { exceptionsSection } from './exceptionsView';
 import { QaTab } from './qaTab';
@@ -94,8 +96,15 @@ export class Panel {
   /** When each container was first seen, to delay the reminder. */
   private readonly hintSince = new Map<string, number>();
   private lintSeen: Controller['lastLint'] = null;
+  /** Markers in GTM's own lists, and the result they currently show. */
+  private readonly overlay: GtmOverlay;
+  private overlayLint: Controller['lastLint'] = null;
+  /** Google tag best practices on GTM's Settings page. */
+  private readonly guide = new SettingsGuide();
   /** Set when the user clicks Submit/Publish in GTM; cleared when dismissed or the report is started. */
   private reportReminder = false;
+  /** Container the tabs currently show data for. */
+  private shownContainer: string | undefined;
   private lintContainer: string | undefined;
   private readonly root: ShadowRoot;
   private readonly panel: HTMLElement;
@@ -116,6 +125,16 @@ export class Panel {
 
   constructor(private readonly ctl: Controller) {
     installFonts();
+    this.overlay = new GtmOverlay(
+      {
+        summary: (critical, warning, info) => t('markerSummary', { critical, warning, info }),
+        navSummary: (critical, warning, info) => t('navSummary', { critical, warning, info }),
+        uses: (names) => t('markerUses', { names }),
+        rename: (name) => t('markerRename', { name }),
+      },
+      (kind, name, related) => this.openEntity(kind, name, related),
+    );
+    void loadSettings().then((s) => this.guide.setEnabled(s.settingsGuide));
     const host = document.createElement('div');
     host.id = 'gtm-qa-checker-host';
     this.root = host.attachShadow({ mode: 'open' });
@@ -189,11 +208,24 @@ export class Panel {
 
   private renderHeader(): void {
     const containerId = this.ctl.store.context.containerId;
+    if (containerId && this.shownContainer && containerId !== this.shownContainer) {
+      this.diffTab.resetForContainer();
+      this.qaTab.resetForContainer();
+      this.reportTab.resetForContainer();
+      if (!this.panel.hidden) this.renderTab();
+    }
+    this.shownContainer = containerId;
     // QA always runs on the open container: remember which container the latest result belongs to.
     if (this.ctl.lastLint && this.ctl.lastLint !== this.lintSeen) {
       this.lintSeen = this.ctl.lastLint;
       this.lintContainer = containerId;
       if (containerId) this.checkedContainers.add(containerId);
+    }
+    // Markers only for the open container's result (also after exceptions changed the result).
+    const currentLint = this.lintContainer === containerId ? this.ctl.lastLint : null;
+    if (currentLint !== this.overlayLint) {
+      this.overlayLint = currentLint;
+      this.overlay.update(currentLint, currentLint ? this.ctl.store.snapshots.get(currentLint.scope) ?? null : null);
     }
     const critical = this.lintContainer === containerId ? this.ctl.lastLint?.counts.critical ?? 0 : 0;
     this.launcherDot.hidden = critical === 0;
@@ -282,6 +314,14 @@ export class Panel {
     );
   }
 
+  /** Marker clicked in GTM's list: open the QA tab filtered to that entity. */
+  private openEntity(kind: EntityKind, name: string, related: string[]): void {
+    this.qaTab.focusEntity(kind, name, related);
+    this.tab = 'qa';
+    this.renderNav();
+    this.toggle(true);
+  }
+
   private runFromHint(): void {
     this.tab = 'qa';
     this.renderNav();
@@ -314,6 +354,7 @@ export class Panel {
     this.diffTab.refresh();
     this.qaTab.refresh();
     this.reportTab.refresh();
+    this.guide.refresh();
     this.renderHeader();
     this.renderLangSwitch();
     this.renderNav();
@@ -739,6 +780,8 @@ export class Panel {
     const naming = h('input', { type: 'text', value: s.namingPattern }) as HTMLInputElement;
     const sgtmUrl = h('input', { type: 'url', value: s.expectedServerContainerUrl, placeholder: 'https://sgtm.example.com' }) as HTMLInputElement;
     const taxonomy = h('input', { type: 'checkbox', checked: s.namingTaxonomy }) as HTMLInputElement;
+    const markersNaming = h('input', { type: 'checkbox', checked: !s.markersHideNaming }) as HTMLInputElement;
+    const guide = h('input', { type: 'checkbox', checked: s.settingsGuide }) as HTMLInputElement;
     const exempt = h('input', { type: 'text', value: s.consentExempt.join(', ') }) as HTMLInputElement;
 
     const language = h(
@@ -769,9 +812,13 @@ export class Panel {
         namingPattern: naming.value,
         expectedServerContainerUrl: sgtmUrl.value.trim(),
         namingTaxonomy: taxonomy.checked,
+        markersHideNaming: !markersNaming.checked,
+        settingsGuide: guide.checked,
         consentExempt: exempt.value.split(',').map((x) => x.trim()).filter(Boolean),
       });
       this.flash(status, t('saved'), true);
+      this.overlay.refresh(); // markers depend on markersHideNaming
+      this.guide.setEnabled(guide.checked);
     };
 
     return [
@@ -802,6 +849,8 @@ export class Panel {
         {},
         h('h3', {}, t('agencyStandards')),
         h('label', { class: 'inline' }, taxonomy, ` ${t('taxonomy')}`),
+        h('label', { class: 'inline' }, markersNaming, ` ${t('markersNaming')}`),
+        h('label', { class: 'inline' }, guide, ` ${t('settingsGuide')}`),
         h('label', {}, t('namingPattern')), naming,
         h('label', {}, t('expectedSgtm')), sgtmUrl,
         h('label', {}, t('consentExempt')), exempt,

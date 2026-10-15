@@ -12,6 +12,16 @@ npm run typecheck
 ```
 
 Chrome → `chrome://extensions` → włącz **Tryb dewelopera** → **Załaduj rozpakowane** → wskaż folder `dist/`.
+
+Instalacja dla zespołu (z ZIP-a, EN/DE/PL): [INSTALL.txt](INSTALL.txt) – ten sam plik trafia do paczki.
+
+### Paczka do dystrybucji
+
+```bash
+npm run package    # build produkcyjny (zminifikowany, bez source map) → release/gtm-qa-checker-<wersja>.zip
+```
+
+ZIP nadaje się do wgrania w Chrome Web Store (Developer Dashboard) albo jako załącznik do GitHub Release (`gh release create v<wersja> release/gtm-qa-checker-<wersja>.zip`). Przed każdą nową wersją podbij `version` w `public/manifest.json` i `package.json`.
 Po każdym buildzie kliknij ikonę odświeżenia rozszerzenia i przeładuj kartę GTM.
 
 Panel otwiera się przyciskiem **QA** w prawym dolnym rogu strony GTM albo ikoną rozszerzenia.
@@ -53,4 +63,13 @@ Awaryjnie zawsze działa **Import eksportu kontenera** (Administracja → Ekspor
 - [x] Wygląd w barwach smarketer.group (`src/content/panel/styles.ts`): fiolet #340254, gradient #3C0A6D→#6E6EAA, lawenda #ae93d6, akcent #46b5fc; font Inter dołączony do wtyczki (`public/fonts`, licencja OFL w `Inter-LICENSE.txt`); znak marki w nagłówku; kafelki liczników w QA, karty uwag z paskiem wagi
 - [x] Raport „jednym kliknięciem” (zakładka Raport → „Utwórz raport z moich zmian”): niezapisane zmiany workspace’u, a jeśli ich brak – ostatnia publikacja (poprzednia → najnowsza wersja); QA tylko na zmienionych elementach; raport kopiowany do schowka
 - [x] Przypomnienia: dymek „kontener nie był sprawdzony” (po ~2 s, × ukrywa na sesję) oraz po kliknięciu Submit/Publish w GTM dymek „Publikujesz? Utwórz raport” (nie blokuje GTM; pomijany, gdy raport już powstał w tej karcie); czerwona kropka na przycisku przy uwagach krytycznych
+- [x] Raport zwięzły domyślnie (`src/report/compact.ts`, ~45–60 linii zamiast ~200): jedna linia na uwagę, werdykty zakupu bez tabeli, zmiany w jednej linii na typ; pełny raport jako opcja „Szczegółowy raport”; krótsze podsumowanie AI (≤150 słów); ponowienie zapytań do OpenAI/Gemini przy 429/503
+- [x] Znaczniki na listach GTM (`src/content/overlay.ts`): przy nazwie tagu/reguły/zmiennej czerwone kółko z liczbą uwag krytycznych i żółte z liczbą ostrzeżeń (po QA, z uwzględnieniem wyjątków); dymek z tytułami uwag; kliknięcie otwiera QA przefiltrowane do tego elementu. Dopasowanie po nazwie (GTM nie udostępnia ID w DOM, nazwy są unikalne per typ)
+- [x] Znaczniki rozszerzone: niebieskie (info) na listach; lewe menu GTM (Tags/Triggers/Variables) z liczbą elementów z uwagami wg najpoważniejszej; uwagi o nazewnictwie w znacznikach zawsze jako niebieskie (info), można je wyłączyć w Ustawieniach
+- [x] „Not an error”: pole „Dlaczego to nie jest błąd?” + opcja „Naucz też AI” – powód zapisuje się też jako zasada AI (ten sam eksport/import wyjątków)
+- [x] Znaczniki: lista tagów (nowy komponent GTM, dopasowanie po ID z linku); pusty pierścień przy tagu, który używa zmiennych/reguł z uwagami (bez dublowania liczników, kliknięcie filtruje QA do tagu + tych elementów); przegląd zgód pominięty w znacznikach
+- [x] Poprawka: zmiana kontenera w tej samej karcie czyści dane, wyniki Diff/QA, raport i znaczniki (wcześniej workspace’y o tym samym numerze z różnych kontenerów się mieszały)
+- [x] Taksonomia nazw – „Jak poprawić”: przy każdym elemencie obecna nazwa → sugerowana (z konfiguracji: ścieżka DLV, zdarzenie reguły, platforma tagu), powód i przycisk Kopiuj; sugestia także w dymku znacznika w GTM (`Finding.fixes`)
+- [x] Best practices Google tag na stronie Settings w GTM (`src/content/settingsGuide.ts`, treść: `src/guide/googleTagGuide.ts` z dokumentu „Google Tag Best Practices”): plakietka z rekomendacją przy każdym ustawieniu (dopasowanie po `activity-slat--<publicId>`), karta z rekomendacją / uzasadnieniem / weryfikacją po otwarciu ustawienia (trasa `/activities/<id>`), przegląd wszystkich ustawień + „Czy łączyć Google tagi?”; do wyłączenia w Ustawieniach
+- [ ] Pomysł: QA porównuje faktyczne wartości ustawień Google tag z rekomendacjami
 - [ ] Pomysł na kolejny etap: agent AI w trybie Preview (Tag Assistant) – wyłapywanie i oznaczanie błędnych tagów na żywo

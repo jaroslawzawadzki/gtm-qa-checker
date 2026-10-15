@@ -15,6 +15,10 @@ export interface Settings {
   expectedServerContainerUrl: string;
   /** Enforce the agency taxonomy ([SST] Platform - Event, ce/pv triggers, DLV/CJS/... variables). */
   namingTaxonomy: boolean;
+  /** Show naming findings in the markers inside GTM's lists/menu (always as blue/info, so they don't drown real problems). */
+  markersHideNaming: boolean;
+  /** Show the agency's Google tag best practices on GTM's container Settings page. */
+  settingsGuide: boolean;
   /** Tags exempt from consent checks, matched against template or tag name (internal tools, e.g. FAST). */
   consentExempt: string[];
   /** Keywords used to classify value variables / dataLayer keys. */
@@ -40,6 +44,8 @@ export const DEFAULT_SETTINGS: Settings = {
   namingPattern: '',
   expectedServerContainerUrl: '',
   namingTaxonomy: true,
+  markersHideNaming: false,
+  settingsGuide: true,
   consentExempt: ['FAST'],
   financialKeywords: {
     gross: ['brutto', 'gross', 'total', 'incl', 'with_tax'],

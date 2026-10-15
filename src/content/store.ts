@@ -78,7 +78,18 @@ export class GtmStore {
   }
 
   setContext(next: GtmContext): void {
+    // Scopes are keyed by workspace/version number only, which repeat across containers: GTM is a
+    // single-page app, so switching containers must drop everything loaded for the previous one.
+    if (next.containerId && this.context.containerId && next.containerId !== this.context.containerId) this.reset();
     if (this.applyContext(next)) this.emit();
+  }
+
+  /** Forgets all container data (on container switch). Templates and publicIds are keyed globally and stay. */
+  private reset(): void {
+    this.snapshots.clear();
+    this.versionHeaders.clear();
+    this.workspaces.clear();
+    this.detailCache.clear();
   }
 
   /** Updates the context (publicId resolved from containerId); returns true if it changed. */

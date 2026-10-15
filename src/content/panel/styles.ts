@@ -73,6 +73,11 @@ main section.quick-report .btn.primary { margin-top: 4px; padding: 9px 18px; }
 main section.quick-report details.options { margin-top: 10px; }
 main section.quick-report details.options summary { display: list-item; color: var(--primary); font-weight: 500; cursor: pointer; }
 
+.filter-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 12px 0 4px;
+  padding: 8px 12px; background: var(--primary-softer); border: 1px solid var(--primary-soft); border-radius: var(--radius-sm); font-size: 12px;
+}
+
 /* reminder bubble above the launcher */
 .launcher-hint {
   position: fixed; right: 22px; bottom: 82px; z-index: 2147483647; max-width: 300px;
@@ -300,6 +305,16 @@ details.finding p { margin: 6px 0; color: var(--text-2); }
 details.finding > button.btn.small { margin-top: 6px; }
 .chips { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
 .chip { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-weight: 500; }
+.fixes { margin: 8px 0; padding: 10px 12px; background: var(--bg-soft); border: 1px solid var(--bg-muted); border-radius: var(--radius-sm); max-height: 340px; overflow: auto; }
+.fixes-title { font-weight: 600; color: var(--primary); }
+.fix { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; padding: 7px 0; border-top: 1px solid var(--bg-muted); }
+.fix:first-of-type { border-top: 0; }
+.fix-names { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.fix-old { color: var(--text-2); text-decoration: line-through; text-decoration-color: #ef4444; }
+.fix-arrow { color: var(--text-2); }
+.fix-new { font: 600 12px/1.4 ui-monospace, Consolas, monospace; color: #15803d; background: #dcfce7; padding: 1px 6px; border-radius: 4px; }
+.fix-reason { grid-column: 1 / -1; font-size: 11px; color: var(--text-2); }
+.exception-form textarea { font-family: inherit; font-size: 13px; min-height: 54px; }
 .exception-form {
   margin-top: 8px; padding: 10px 12px; background: var(--primary-softer);
   border: 1px dashed var(--primary-light); border-radius: var(--radius-sm);

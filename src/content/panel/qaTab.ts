@@ -1,10 +1,10 @@
 // "QA" tab: pick a scope, run the linter, browse findings by severity.
-import type { LintResult } from '../../qa/linter';
-import type { Finding, Severity } from '../../qa/rules';
+import { countSeverities, type LintResult } from '../../qa/linter';
+import type { Finding, Fix, Severity } from '../../qa/rules';
 import type { Bridge, SstInventory } from '../../qa/sst';
 import { entityKey } from '../../qa/suppress';
-import { addSuppression, removeException } from '../../shared/exceptions';
-import type { ScopeKey } from '../../shared/types';
+import { addAiRule, addSuppression, removeException } from '../../shared/exceptions';
+import type { EntityKind, ScopeKey } from '../../shared/types';
 import type { Controller } from '../content';
 import { h } from './dom';
 import { t } from './i18n';
@@ -25,10 +25,18 @@ export class QaTab {
   private scope: ScopeKey | '' = '';
   private onlyDiff = false;
   private visible: Record<Severity, boolean> = { critical: true, warning: true, info: false };
+  /** Set when the user clicks a marker in GTM's list: show only that entity's findings. */
+  private entityFilter: { kind: EntityKind; name: string; related: string[] } | null = null;
   private running = false;
 
   constructor(private readonly ctl: Controller) {
     this.element.append(this.formBox, this.results);
+  }
+
+  /** Opened from a marker in GTM's Tags/Triggers/Variables list. */
+  focusEntity(kind: EntityKind, name: string, related: string[] = []): void {
+    this.entityFilter = { kind, name, related };
+    this.results.replaceChildren();
   }
 
   show(): void {
@@ -37,6 +45,13 @@ export class QaTab {
   }
 
   /** After a language change: rebuilds the form and the result from ctl.lastLint. */
+  /** Container switched: forget the selected scope and entity filter of the previous container. */
+  resetForContainer(): void {
+    this.scope = '';
+    this.entityFilter = null;
+    this.refresh();
+  }
+
   refresh(): void {
     this.setStatus('');
     this.renderForm();
@@ -116,15 +131,21 @@ export class QaTab {
   }
 
   private renderResult(r: LintResult): void {
-    // Count tiles that double as visibility filters (dimmed when hidden).
+    // With an element filter (marker clicked in GTM) the tiles count only that element's findings
+    // and show every severity; otherwise they count the whole result and double as visibility toggles.
+    const filter = this.entityFilter;
+    const matching = filter
+      ? r.findings.filter((f) => f.entities.some((e) => (e.kind === filter.kind && e.name === filter.name) || filter.related.includes(`${e.kind}:${e.name}`)))
+      : r.findings;
+    const counts = filter ? countSeverities(matching) : r.counts;
     const toggle = (sev: Severity) => {
-      const box = h('input', { type: 'checkbox', checked: this.visible[sev] }) as HTMLInputElement;
+      const box = h('input', { type: 'checkbox', checked: this.visible[sev], disabled: !!filter }) as HTMLInputElement;
       box.addEventListener('change', () => ((this.visible[sev] = box.checked), this.renderResult(r)));
       return h(
         'label',
-        { class: `tile ${sev}${this.visible[sev] ? '' : ' off'}` },
+        { class: `tile ${sev}${filter || this.visible[sev] ? '' : ' off'}` },
         box,
-        h('span', { class: 'count' }, r.counts[sev]),
+        h('span', { class: 'count' }, counts[sev]),
         h('span', { class: 'label' }, severityLabel(sev)),
       );
     };
@@ -140,7 +161,17 @@ export class QaTab {
       ),
     ];
     if (r.sst) nodes.push(this.renderSst(r.sst));
-    const shown = r.findings.filter((f) => this.visible[f.severity]);
+    const shown = filter ? matching : r.findings.filter((f) => this.visible[f.severity]);
+    if (filter) {
+      nodes.push(
+        h(
+          'div',
+          { class: 'filter-bar' },
+          h('span', {}, t('filterEntity'), ' ', h('span', { class: 'chip' }, filter.name), filter.related.length ? ` ${t('filterRelated', { n: filter.related.length })}` : ''),
+          h('button', { class: 'link-btn', onClick: () => ((this.entityFilter = null), this.renderResult(r)) }, t('clearFilter')),
+        ),
+      );
+    }
     if (!r.findings.length) nodes.push(h('div', { class: 'empty' }, t('qaNoFindings')));
     else if (!shown.length) nodes.push(h('div', { class: 'empty' }, t('qaAllHidden')));
     nodes.push(h('section', { class: 'plain' }, ...shown.map((f) => this.renderFinding(f))));
@@ -207,14 +238,17 @@ export class QaTab {
       h('option', { value: 'container' }, t('excThisContainer', { id: context.publicId ?? context.containerId ?? '?' })),
       h('option', { value: 'all' }, t('allContainers')),
     ) as HTMLSelectElement;
-    const reason = h('input', { type: 'text', placeholder: t('excReasonPlaceholder') }) as HTMLInputElement;
+    const reason = h('textarea', { rows: 2, placeholder: t('excReasonPlaceholder') }) as HTMLTextAreaElement;
+    // The reason also becomes an AI rule, so later summaries stop flagging the same situation.
+    const teach = h('input', { type: 'checkbox', checked: true }) as HTMLInputElement;
     const form = h(
       'div',
       { class: 'exception-form', hidden: true },
-      h('label', {}, t('excScope')),
-      scope,
       h('label', {}, t('excReason')),
       reason,
+      h('label', { class: 'inline', style: 'margin-top:6px' }, teach, ` ${t('excTeach')}`),
+      h('label', {}, t('excScope')),
+      scope,
       h(
         'div',
         { class: 'row', style: 'margin-top:8px' },
@@ -232,9 +266,20 @@ export class QaTab {
                 title: f.title,
                 reason: reason.value.trim() || undefined,
               });
+              const why = reason.value.trim();
+              const taught =
+                teach.checked &&
+                !!why &&
+                (await addAiRule(
+                  t('aiRuleFromException', {
+                    finding: f.title.replace(/\s*\(\d+(\/\d+)?\)/g, ''),
+                    elements: f.entities.slice(0, 3).map((e) => e.name).join(', ') + (f.entities.length > 3 ? ' …' : ''),
+                    reason: why,
+                  }),
+                ));
               await this.ctl.reapplyExceptions();
               if (this.ctl.lastLint) this.renderResult(this.ctl.lastLint);
-              this.setStatus(t('excSaved'), true);
+              this.setStatus(taught ? t('excSavedTaught') : t('excSaved'), true);
             },
           },
           t('excSave'),
@@ -292,19 +337,65 @@ export class QaTab {
     );
   }
 
+  /** Fixes for elements still in the finding (exceptions may remove some); with a GTM marker filter only that element's. */
+  private fixesFor(f: Finding): Fix[] {
+    const filter = this.entityFilter;
+    return (f.fixes ?? []).filter(
+      (x) =>
+        f.entities.some((e) => e.kind === x.entity.kind && e.id === x.entity.id) &&
+        (!filter || (x.entity.kind === filter.kind && x.entity.name === filter.name) || filter.related.includes(`${x.entity.kind}:${x.entity.name}`)),
+    );
+  }
+
+  private renderFixes(fixes: Fix[]): Node {
+    const copyBtn = (text: string) => {
+      const btn = h('button', { class: 'btn small' }, t('fixCopy')) as HTMLButtonElement;
+      btn.addEventListener('click', () =>
+        void navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = t('fixCopied');
+          setTimeout(() => (btn.textContent = t('fixCopy')), 1500);
+        }),
+      );
+      return btn;
+    };
+    return h(
+      'div',
+      { class: 'fixes' },
+      h('div', { class: 'fixes-title' }, '🛠 ', t('fixTitle')),
+      h('p', { class: 'small muted' }, t('fixSteps')),
+      ...fixes.slice(0, MAX_DETAILS).map((x) =>
+        h(
+          'div',
+          { class: 'fix' },
+          h(
+            'div',
+            { class: 'fix-names' },
+            h('span', { class: 'fix-old', title: kindLabel(x.entity.kind) }, x.entity.name),
+            h('span', { class: 'fix-arrow' }, '→'),
+            h('code', { class: 'fix-new' }, x.suggestion),
+          ),
+          copyBtn(x.suggestion),
+          h('div', { class: 'fix-reason' }, x.reason),
+        ),
+      ),
+      fixes.length > MAX_DETAILS ? h('p', { class: 'small muted' }, t('fixMore', { n: fixes.length - MAX_DETAILS })) : null,
+    );
+  }
+
   private renderFinding(f: Finding): Node {
     const details = f.details.length > MAX_DETAILS ? [...f.details.slice(0, MAX_DETAILS), t('moreDetails', { n: f.details.length - MAX_DETAILS })] : f.details;
     const form = this.exceptionForm(f);
+    const fixes = this.fixesFor(f);
     return h(
       'details',
-      { class: `finding ${f.severity}`, open: f.severity === 'critical' },
+      { class: `finding ${f.severity}`, open: f.severity === 'critical' || (!!this.entityFilter && fixes.length > 0) },
       h('summary', {}, h('span', { class: `badge ${SEVERITY_CLASS[f.severity]}` }, severityBadge(f.severity)), ' ', h('span', { class: 'name' }, f.title)),
       h('p', { class: 'small' }, f.message),
       f.entities.length <= 12
         ? h('div', { class: 'chips' }, ...f.entities.map((e) => h('span', { class: 'chip', title: kindLabel(e.kind) }, e.name)))
         : null,
-      details.length ? h('pre', { class: 'params' }, details.join('\n')) : null,
-      h('button', { class: 'btn small', onClick: () => (form.hidden = !form.hidden) }, t('notAnError')),
+      fixes.length ? this.renderFixes(fixes) : details.length ? h('pre', { class: 'params' }, details.join('\n')) : null,
+      h('button', { class: 'btn small', onClick: () => ((form.hidden = !form.hidden), form.hidden || form.querySelector('textarea')?.focus()) }, t('notAnError')),
       form,
     );
   }

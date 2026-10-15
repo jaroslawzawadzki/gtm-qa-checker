@@ -17,6 +17,7 @@ export class ReportTab {
   private options: ReportOptions = { ...DEFAULT_REPORT_OPTIONS };
   private aiSummary = '';
   private running = false;
+  private optionsOpen = false;
   /** Results produced by the one-click flow (anything else in ctl.lastDiff/lastLint was made by hand). */
   private autoDiff: DiffResult | null = null;
   private autoLint: Controller['lastLint'] = null;
@@ -67,6 +68,16 @@ export class ReportTab {
   }
 
   /** After a language change: the generated report and AI summary are in the old language. */
+  /** Container switched: the report and one-click results belong to the previous container. */
+  resetForContainer(): void {
+    this.aiSummary = '';
+    this.editor.value = '';
+    this.autoDiff = null;
+    this.autoLint = null;
+    this.setStatus('');
+    this.show();
+  }
+
   refresh(): void {
     const hadReport = !!this.editor.value || !!this.aiSummary;
     this.aiSummary = '';
@@ -78,9 +89,10 @@ export class ReportTab {
 
   show(): void {
     const { lastDiff: diff, lastLint: lint } = this.ctl;
-    const option = (key: 'includeInfo' | 'includeChangeList', label: string) => {
+    const option = (key: 'detailed' | 'includeInfo' | 'includeChangeList', label: string) => {
       const box = h('input', { type: 'checkbox', checked: this.options[key] }) as HTMLInputElement;
-      box.addEventListener('change', () => (this.options[key] = box.checked));
+      // Toggling 'detailed' shows/hides its sub-options.
+      box.addEventListener('change', () => ((this.options[key] = box.checked), key === 'detailed' && this.show()));
       return h('label', { class: 'inline' }, box, ` ${label}`);
     };
 
@@ -103,7 +115,7 @@ export class ReportTab {
           ? h('div', { style: 'margin-top:8px' }, h('button', { class: 'link-btn', disabled: this.running, onClick: () => void this.generate() }, t('useCurrent')))
           : null,
         this.status,
-        h('details', { class: 'plain options' }, h('summary', { class: 'small' }, t('reportOptions')), option('includeChangeList', t('optChangeList')), option('includeInfo', t('optInfo'))),
+        h('details', { class: 'plain options', open: this.optionsOpen, onToggle: (e: Event) => (this.optionsOpen = (e.currentTarget as HTMLDetailsElement).open) }, h('summary', { class: 'small' }, t('reportOptions')), option('detailed', t('optDetailed')), ...(this.options.detailed ? [option('includeChangeList', t('optChangeList')), option('includeInfo', t('optInfo'))] : [])),
       ),
       // Report tools appear once there is a report.
       ...(this.editor.value
