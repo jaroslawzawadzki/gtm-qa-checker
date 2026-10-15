@@ -1,6 +1,7 @@
 // Sidebar panel injected into the GTM page inside a Shadow DOM.
 // All user/container-provided strings are rendered as text nodes (never innerHTML).
 import { getLang, isLang, LANGS, type Lang } from '../../i18n';
+import { savePreviewQa, toPreviewQa } from '../../shared/previewQa';
 import { DEFAULT_MODELS, loadSettings, saveSettings, type LlmProvider } from '../../shared/storage';
 import type { DetectedCounts, EntityChange, EntityKind, GtmEntity, GtmParameter, ScopeKey, Snapshot } from '../../shared/types';
 import { hasEntities } from '../captureLog';
@@ -226,6 +227,11 @@ export class Panel {
     if (currentLint !== this.overlayLint) {
       this.overlayLint = currentLint;
       this.overlay.update(currentLint, currentLint ? this.ctl.store.snapshots.get(currentLint.scope) ?? null : null);
+      // Same result for the Tag Assistant (Preview) tab of this container.
+      const publicId = this.ctl.store.context.publicId;
+      if (currentLint && publicId) {
+        void loadSettings().then((s) => savePreviewQa(toPreviewQa(publicId, currentLint, s.markersHideNaming)));
+      }
     }
     const critical = this.lintContainer === containerId ? this.ctl.lastLint?.counts.critical ?? 0 : 0;
     this.launcherDot.hidden = critical === 0;
@@ -782,6 +788,7 @@ export class Panel {
     const taxonomy = h('input', { type: 'checkbox', checked: s.namingTaxonomy }) as HTMLInputElement;
     const markersNaming = h('input', { type: 'checkbox', checked: !s.markersHideNaming }) as HTMLInputElement;
     const guide = h('input', { type: 'checkbox', checked: s.settingsGuide }) as HTMLInputElement;
+    const previewAi = h('input', { type: 'checkbox', checked: s.previewAutoAi }) as HTMLInputElement;
     const exempt = h('input', { type: 'text', value: s.consentExempt.join(', ') }) as HTMLInputElement;
 
     const language = h(
@@ -814,6 +821,7 @@ export class Panel {
         namingTaxonomy: taxonomy.checked,
         markersHideNaming: !markersNaming.checked,
         settingsGuide: guide.checked,
+        previewAutoAi: previewAi.checked,
         consentExempt: exempt.value.split(',').map((x) => x.trim()).filter(Boolean),
       });
       this.flash(status, t('saved'), true);
@@ -851,6 +859,7 @@ export class Panel {
         h('label', { class: 'inline' }, taxonomy, ` ${t('taxonomy')}`),
         h('label', { class: 'inline' }, markersNaming, ` ${t('markersNaming')}`),
         h('label', { class: 'inline' }, guide, ` ${t('settingsGuide')}`),
+        h('label', { class: 'inline' }, previewAi, ` ${t('previewAutoAi')}`),
         h('label', {}, t('namingPattern')), naming,
         h('label', {}, t('expectedSgtm')), sgtmUrl,
         h('label', {}, t('consentExempt')), exempt,

@@ -17,6 +17,8 @@ export interface Settings {
   namingTaxonomy: boolean;
   /** Show naming findings in the markers inside GTM's lists/menu (always as blue/info, so they don't drown real problems). */
   markersHideNaming: boolean;
+  /** Tag Assistant (Preview): review new events with AI automatically (batched). */
+  previewAutoAi: boolean;
   /** Show the agency's Google tag best practices on GTM's container Settings page. */
   settingsGuide: boolean;
   /** Tags exempt from consent checks, matched against template or tag name (internal tools, e.g. FAST). */
@@ -46,6 +48,7 @@ export const DEFAULT_SETTINGS: Settings = {
   namingTaxonomy: true,
   markersHideNaming: false,
   settingsGuide: true,
+  previewAutoAi: true,
   consentExempt: ['FAST'],
   financialKeywords: {
     gross: ['brutto', 'gross', 'total', 'incl', 'with_tax'],

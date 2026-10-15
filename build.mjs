@@ -13,6 +13,7 @@ const outDir = resolve('dist');
 const entries = {
   injected: 'src/injected/injected.ts',
   content: 'src/content/content.ts',
+  preview: 'src/preview/preview.ts',
   background: 'src/background/serviceWorker.ts',
 };
 

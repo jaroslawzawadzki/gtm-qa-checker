@@ -11,6 +11,7 @@ import type { LintResult } from '../qa/linter';
 import { Resolver } from '../qa/resolver';
 import type { Severity } from '../qa/rules';
 import { paramLeaves } from '../qa/semantics';
+import { NAMING_RULES, OVERVIEW_RULES } from '../shared/previewQa';
 import { loadSettings } from '../shared/storage';
 import type { EntityKind, GtmTag, Snapshot } from '../shared/types';
 
@@ -35,9 +36,6 @@ interface Uses {
 
 const ROUTE_KIND: Record<string, EntityKind> = { tags: 'tag', triggers: 'trigger', variables: 'variable' };
 const BADGE_ATTR = 'data-gtmqa-badge';
-const NAMING_RULES = new Set(['naming-taxonomy', 'naming-convention']);
-/** Overviews that list (almost) every tag by design – not a problem to point at. */
-const OVERVIEW_RULES = new Set(['consent-overview']);
 const SEVERITIES: Severity[] = ['critical', 'warning', 'info'];
 const COLORS: Record<Severity, string> = { critical: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
 const ICONS: Record<Severity, string> = { critical: '🔴', warning: '🟡', info: '🔵' };

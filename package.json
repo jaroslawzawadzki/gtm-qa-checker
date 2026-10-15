@@ -1,6 +1,6 @@
 {
   "name": "gtm-qa-checker",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Chrome extension (MV3): GTM QA linter, version diff and Markdown report generator",
   "type": "module",

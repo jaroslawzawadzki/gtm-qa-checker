@@ -68,6 +68,8 @@ export function isChannelMsg<T extends ToContentMsg | ToInjectedMsg>(
 }
 
 // chrome.runtime messages
-export type RuntimeMsg = { type: 'panel:toggle' } | { type: 'ping' } | { type: 'llm:summarize'; input: string };
+export type RuntimeMsg = { type: 'panel:toggle' } | { type: 'ping' } | { type: 'llm:summarize'; input: string }
+  /** Review of one Tag Assistant (Preview) event; the answer is JSON (see buildPreviewPrompt). */
+  | { type: 'llm:preview'; input: string };
 
 export type LlmResponse = { ok: true; text: string; model: string } | { ok: false; error: string };

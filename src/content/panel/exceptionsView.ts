@@ -50,7 +50,7 @@ export function exceptionsSection(ctl: Controller): HTMLElement {
       h(
         'div',
         { class: 'row' },
-        h('button', { class: 'btn', onClick: download }, t('excExport', { n: list.aiRules.length + list.suppressions.length })),
+        h('button', { class: 'btn', onClick: download }, t('excExport', { n: list.aiRules.length + list.suppressions.length + (list.feedback?.length ?? 0) })),
         h('button', { class: 'btn', onClick: () => fileInput.click() }, t('excImport')),
         fileInput,
       ),
@@ -111,6 +111,38 @@ export function exceptionsSection(ctl: Controller): HTMLElement {
             ),
           )
         : h('p', { class: 'small muted' }, t('noHidden')),
+
+      h(
+        'label',
+        {},
+        t('feedbackTitle', {
+          n: list.feedback?.length ?? 0,
+          ok: list.feedback?.filter((f) => f.verdict === 'correct').length ?? 0,
+          wrong: list.feedback?.filter((f) => f.verdict === 'wrong').length ?? 0,
+        }),
+      ),
+      list.feedback?.length
+        ? h(
+            'ul',
+            { class: 'list' },
+            ...[...list.feedback]
+              .reverse()
+              .slice(0, 30)
+              .map((f) =>
+                h(
+                  'li',
+                  {},
+                  h(
+                    'span',
+                    { class: 'name small' },
+                    `${f.verdict === 'correct' ? '👍' : '👎'} ${f.tag ? `${f.tag}: ` : ''}${f.finding}`,
+                    h('div', { class: 'muted' }, [f.source, f.publicId, f.event, f.reason, fmtTime(f.createdAt)].filter(Boolean).join(' · ')),
+                  ),
+                  h('button', { class: 'btn small', onClick: async () => (await removeException('feedback', f.id), await render()) }, t('remove')),
+                ),
+              ),
+          )
+        : h('p', { class: 'small muted' }, t('noFeedback')),
     );
   };
 

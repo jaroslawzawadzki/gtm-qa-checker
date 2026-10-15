@@ -37,6 +37,8 @@ EN – First steps
 - Open a container → QA → "Run QA". Afterwards GTM's lists show red / yellow / blue markers.
 - When you are done: Report → "Create report from my changes" (copied to the clipboard).
 - Container → Settings: smarketer best practices for the Google tag settings.
+- Preview (Tag Assistant): the "smarketer QA · Preview" card audits every event automatically
+  (coloured tiles, dots next to events, AI review). Rate findings with 👍 / 👎 and say why.
 
 EN – Troubleshooting
 --------------------
@@ -79,6 +81,8 @@ DE – Erste Schritte
 - Container öffnen → QA → „QA starten“. Danach zeigen die GTM-Listen rote / gelbe / blaue Markierungen.
 - Wenn die Arbeit fertig ist: Bericht → „Bericht zu meinen Änderungen erstellen“ (in die Zwischenablage kopiert).
 - Container → Einstellungen: smarketer Best Practices für die Google-Tag-Einstellungen.
+- Vorschau (Tag Assistant): die Karte „smarketer QA · Vorschau“ prüft jedes Ereignis automatisch
+  (farbige Kacheln, Punkte an Ereignissen, KI-Prüfung). Befunde mit 👍 / 👎 bewerten und begründen.
 
 DE – Probleme
 -------------
@@ -121,6 +125,8 @@ PL – Pierwsze kroki
 - Otwórz kontener → QA → „Uruchom QA”. Potem listy w GTM pokazują czerwone / żółte / niebieskie kółka.
 - Po skończonej pracy: Raport → „Utwórz raport z moich zmian” (kopiuje się do schowka).
 - Kontener → Settings: best practices smarketer dla ustawień Google tag.
+- Preview (Tag Assistant): karta „smarketer QA · Preview” sama sprawdza każde zdarzenie
+  (kolorowe kafelki, kropki przy zdarzeniach, przegląd AI). Oceniaj uwagi 👍 / 👎 i wpisz dlaczego.
 
 PL – Problemy
 -------------

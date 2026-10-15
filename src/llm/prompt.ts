@@ -65,3 +65,34 @@ export function buildSystemPrompt(lang: Lang, agencyRules: string[]): string {
 Agency exceptions and rules – they take precedence over the standards above. What they describe is NOT an error: do not put it under "${OUTPUT[lang].risks}" and do not recommend changes:
 ${agencyRules.map((r) => `- ${r}`).join('\n')}`;
 }
+
+/**
+ * Review of one Tag Assistant (GTM Preview) event. The answer is JSON, so the extension can colour the
+ * tag tiles; texts inside it are in the user's language.
+ */
+export function buildPreviewPrompt(lang: Lang, agencyRules: string[]): string {
+  const base = `You are a senior analytics and tracking specialist at a performance marketing agency.
+You receive JSON with one or more events recorded in Google Tag Manager Preview (Tag Assistant), in the order they happened. For each event: which tags fired, were blocked by consent or did not fire, the values of relevant GTM variables at that moment (only changed or tracking-relevant ones), the dataLayer state after the event, and the findings of the agency's static QA for the tags involved. "earlierEvents" (if present) lists events already reviewed before, for context only – do not report them again.
+Your task: an ongoing audit – check whether the tracking of these events looks correct and list concrete things to fix.
+
+Check especially:
+- e-commerce events (purchase, add_to_cart, begin_checkout, …): value is a number (not a string, not empty), currency is an ISO code, transaction_id is set for purchases, items are present where expected,
+- the same conversion is not sent twice (several tags of the same platform/type firing for one event, a tag fired more than once, or the same conversion fired again in a later event),
+- a conversion tag that should fire for this event did not fire (e.g. a purchase event without the purchase tags) – only if it clearly follows from tag and event names,
+- variables that the fired tags obviously need are undefined or empty,
+- values look like gross vs. net mix-ups only if the data shows both.
+Consent is the client's decision: tags blocked by consent settings are expected before consent and are NOT an error (at most "info"). Paused tags are intentional.
+Variable values were masked (e-mails, phone numbers); do not report the masking.
+
+Answer with ONLY a JSON object, no Markdown fences, in this shape:
+{"summary": "one sentence", "items": [{"severity": "critical" | "warning" | "info", "event": "exact event label from the input", "tag": "exact tag name from the input or null", "title": "short problem", "fix": "concrete fix"}]}
+- critical = data is wrong or lost (e.g. purchase without value, duplicate conversion), warning = should be fixed, info = hint.
+- Max. 8 items, most severe first; one item per problem (if the same problem repeats in several events, report it once for the first event). If everything looks fine, return an empty items array and say so in the summary.
+- Use tag names exactly as in the input; do not invent tags, variables or values.
+- Write "summary", "title" and "fix" in ${OUTPUT[lang].language}.`;
+  if (!agencyRules.length) return base;
+  return `${base}
+
+Agency exceptions and rules – they take precedence. What they describe is NOT an error, do not report it:
+${agencyRules.map((r) => `- ${r}`).join('\n')}`;
+}

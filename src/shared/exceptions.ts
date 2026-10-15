@@ -28,10 +28,32 @@ export interface AiRule {
   createdAt: number;
 }
 
+/**
+ * Feedback on a finding (Preview audit or QA): correct or not, and why. Collected for a shared database
+ * later – a "wrong" verdict with a reason can also become an AI rule.
+ */
+export interface Feedback {
+  id: string;
+  createdAt: number;
+  /** Where the finding came from. */
+  source: 'preview-ai' | 'preview-live' | 'qa';
+  verdict: 'correct' | 'wrong';
+  /** Live-check kind (e.g. firedTimes) – a "wrong" verdict hides it for this tag in later sessions. */
+  kind?: string;
+  publicId?: string;
+  event?: string;
+  tag?: string;
+  finding: string;
+  fix?: string;
+  reason?: string;
+}
+
 export interface ExceptionList {
   version: 1;
   suppressions: Suppression[];
   aiRules: AiRule[];
+  /** Missing in lists stored before feedback existed. */
+  feedback?: Feedback[];
 }
 
 const KEY = 'exceptions';
@@ -103,9 +125,18 @@ export async function addAiRule(text: string): Promise<boolean> {
   return true;
 }
 
-export async function removeException(kind: 'suppression' | 'aiRule', id: string): Promise<void> {
+export async function addFeedback(f: Omit<Feedback, 'id' | 'createdAt'>): Promise<Feedback> {
   const list = await loadExceptions();
-  if (kind === 'suppression') list.suppressions = list.suppressions.filter((s) => s.id !== id);
+  const entry: Feedback = { ...f, id: newId(), createdAt: Date.now() };
+  (list.feedback ??= []).push(entry);
+  await saveExceptions(list);
+  return entry;
+}
+
+export async function removeException(kind: 'suppression' | 'aiRule' | 'feedback', id: string): Promise<void> {
+  const list = await loadExceptions();
+  if (kind === 'feedback') list.feedback = (list.feedback ?? []).filter((f) => f.id !== id);
+  else if (kind === 'suppression') list.suppressions = list.suppressions.filter((s) => s.id !== id);
   else list.aiRules = list.aiRules.filter((r) => r.id !== id);
   await saveExceptions(list);
 }
@@ -122,7 +153,7 @@ export async function importJson(text: string): Promise<{ added: number; skipped
   } catch {
     throw new Error(t('invalidJson'));
   }
-  if (!Array.isArray(incoming.suppressions) && !Array.isArray(incoming.aiRules)) {
+  if (!Array.isArray(incoming.suppressions) && !Array.isArray(incoming.aiRules) && !Array.isArray(incoming.feedback)) {
     throw new Error(t('notExceptions'));
   }
   const list = await loadExceptions();
@@ -153,6 +184,17 @@ export async function importJson(text: string): Promise<{ added: number; skipped
     list.aiRules.push(r);
     ruleIds.add(r.id);
     ruleTexts.add(normalize(r.text));
+    added++;
+  }
+
+  const feedbackIds = new Set((list.feedback ?? []).map((f) => f.id));
+  for (const f of incoming.feedback ?? []) {
+    if (!f?.id || !f.verdict || feedbackIds.has(f.id)) {
+      skipped++;
+      continue;
+    }
+    (list.feedback ??= []).push(f);
+    feedbackIds.add(f.id);
     added++;
   }
 

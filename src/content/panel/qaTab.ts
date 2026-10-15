@@ -3,7 +3,7 @@ import { countSeverities, type LintResult } from '../../qa/linter';
 import type { Finding, Fix, Severity } from '../../qa/rules';
 import type { Bridge, SstInventory } from '../../qa/sst';
 import { entityKey } from '../../qa/suppress';
-import { addAiRule, addSuppression, removeException } from '../../shared/exceptions';
+import { addAiRule, addFeedback, addSuppression, removeException } from '../../shared/exceptions';
 import type { EntityKind, ScopeKey } from '../../shared/types';
 import type { Controller } from '../content';
 import { h } from './dom';
@@ -267,6 +267,8 @@ export class QaTab {
                 reason: reason.value.trim() || undefined,
               });
               const why = reason.value.trim();
+              // Same record as the Preview feedback, for the shared database later.
+              await addFeedback({ source: 'qa', verdict: 'wrong', kind: f.rule, publicId: context.publicId, finding: f.title, reason: why || undefined });
               const taught =
                 teach.checked &&
                 !!why &&
