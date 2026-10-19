@@ -13,3 +13,4 @@ release/
 # Local working files
 dist.zip
 *.docx
+!docs/*.docx
